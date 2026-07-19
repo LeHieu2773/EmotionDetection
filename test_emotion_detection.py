@@ -1,65 +1,23 @@
-from EmotionDetection.emotion_detection import emotion_detector, emotion_predictor
+from EmotionDetection.emotion_detection import emotion_detector
 import unittest
-from unittest.mock import patch
-import json
 
 class TestEmotionDetection(unittest.TestCase):
+    def test_emotion_predictor(self):
+        # Vì emotion_detector giờ trả về dict, test trực tiếp
+        result_1 = emotion_detector("I am glad this happened")
+        self.assertEqual(result_1['dominant_emotion'], 'joy')
 
-    @patch('EmotionDetection.emotion_detection.requests.post')
-    def test_emotion_predictor(self, mock_post):
-        # Tạo response giả cho các cảm xúc khác nhau
-        mock_response = unittest.mock.Mock()
-        mock_response.status_code = 200
+        result_2 = emotion_detector("I am really mad about this")
+        self.assertEqual(result_2['dominant_emotion'], 'anger')
 
-        # Test 1: joy
-        mock_response.text = json.dumps({
-            "emotionPredictions": [{
-                "emotion": {"anger": 0.1, "disgust": 0.1, "fear": 0.1, "joy": 0.9, "sadness": 0.1}
-            }]
-        })
-        mock_post.return_value = mock_response
-        result = emotion_predictor(emotion_detector("I am glad this happened"))
-        self.assertEqual(result['dominant_emotion'], 'joy')
+        result_3 = emotion_detector("I feel disgusted just hearing about this")
+        self.assertEqual(result_3['dominant_emotion'], 'disgust')
+        
+        result_4 = emotion_detector("I am so sad about this")
+        self.assertEqual(result_4['dominant_emotion'], 'sadness')
 
-        # Test 2: anger
-        mock_response.text = json.dumps({
-            "emotionPredictions": [{
-                "emotion": {"anger": 0.9, "disgust": 0.1, "fear": 0.1, "joy": 0.1, "sadness": 0.1}
-            }]
-        })
-        mock_post.return_value = mock_response
-        result = emotion_predictor(emotion_detector("I am really mad about this"))
-        self.assertEqual(result['dominant_emotion'], 'anger')
-
-        # Test 3: disgust
-        mock_response.text = json.dumps({
-            "emotionPredictions": [{
-                "emotion": {"anger": 0.1, "disgust": 0.9, "fear": 0.1, "joy": 0.1, "sadness": 0.1}
-            }]
-        })
-        mock_post.return_value = mock_response
-        result = emotion_predictor(emotion_detector("I feel disgusted just hearing about this"))
-        self.assertEqual(result['dominant_emotion'], 'disgust')
-
-        # Test 4: sadness
-        mock_response.text = json.dumps({
-            "emotionPredictions": [{
-                "emotion": {"anger": 0.1, "disgust": 0.1, "fear": 0.1, "joy": 0.1, "sadness": 0.9}
-            }]
-        })
-        mock_post.return_value = mock_response
-        result = emotion_predictor(emotion_detector("I am so sad about this"))
-        self.assertEqual(result['dominant_emotion'], 'sadness')
-
-        # Test 5: fear
-        mock_response.text = json.dumps({
-            "emotionPredictions": [{
-                "emotion": {"anger": 0.1, "disgust": 0.1, "fear": 0.9, "joy": 0.1, "sadness": 0.1}
-            }]
-        })
-        mock_post.return_value = mock_response
-        result = emotion_predictor(emotion_detector("I am really afraid that this will happen"))
-        self.assertEqual(result['dominant_emotion'], 'fear')
+        result_5 = emotion_detector("I am really afraid that this will happen")
+        self.assertEqual(result_5['dominant_emotion'], 'fear')
 
 if __name__ == '__main__':
     unittest.main()

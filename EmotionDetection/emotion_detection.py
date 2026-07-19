@@ -1,6 +1,5 @@
 """
 Emotion Detection Module
-
 This module provides functions to detect emotions from text using IBM Watson NLP API.
 """
 
@@ -9,13 +8,13 @@ import requests
 
 def emotion_detector(text_to_analyze):
     """
-    Send text to Watson NLP API and return raw JSON response.
+    Send text to Watson NLP API and return formatted emotion scores.
 
     Args:
         text_to_analyze (str): The text to analyze.
 
     Returns:
-        dict: Raw JSON response from API, or a dict with None values if status 400.
+        dict: Formatted emotions with dominant emotion, or None values on error.
     """
     url = (
         'https://sn-watson-emotion.labs.skills.network/'
@@ -26,29 +25,27 @@ def emotion_detector(text_to_analyze):
     response = requests.post(url, json=input_json, headers=header, timeout=10)
 
     if response.status_code == 200:
-        return json.loads(response.text)
-
-    # Status code 400 or other errors return None dict
-    return {
-        'anger': None,
-        'disgust': None,
-        'fear': None,
-        'joy': None,
-        'sadness': None,
-        'dominant_emotion': None
-    }
-
-def emotion_predictor(detected_text):
-    """
-    Parse raw emotion response and extract emotion scores.
-
-    Args:
-        detected_text (dict): Raw JSON response from emotion_detector.
-
-    Returns:
-        dict: Formatted emotions with dominant emotion.
-    """
-    if not detected_text or 'emotionPredictions' not in detected_text:
+        # Parse raw JSON
+        raw_data = json.loads(response.text)
+        # Extract emotions
+        emotions = raw_data['emotionPredictions'][0]['emotion']
+        anger = emotions['anger']
+        disgust = emotions['disgust']
+        fear = emotions['fear']
+        joy = emotions['joy']
+        sadness = emotions['sadness']
+        dominant_emotion = max(emotions, key=emotions.get)
+        # Return formatted dict
+        return {
+            'anger': anger,
+            'disgust': disgust,
+            'fear': fear,
+            'joy': joy,
+            'sadness': sadness,
+            'dominant_emotion': dominant_emotion
+        }
+    else:
+        # Return None values for error
         return {
             'anger': None,
             'disgust': None,
@@ -57,20 +54,3 @@ def emotion_predictor(detected_text):
             'sadness': None,
             'dominant_emotion': None
         }
-
-    emotions = detected_text['emotionPredictions'][0]['emotion']
-    anger = emotions['anger']
-    disgust = emotions['disgust']
-    fear = emotions['fear']
-    joy = emotions['joy']
-    sadness = emotions['sadness']
-    dominant_emotion = max(emotions, key=emotions.get)
-
-    return {
-        'anger': anger,
-        'disgust': disgust,
-        'fear': fear,
-        'joy': joy,
-        'sadness': sadness,
-        'dominant_emotion': dominant_emotion
-    }
